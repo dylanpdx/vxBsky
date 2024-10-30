@@ -1,0 +1,28 @@
+{
+  "name": "vxbsky",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "test": "vitest",
+    "cf-typegen": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.5.2",
+    "@cloudflare/workers-types": "^4.20241022.0",
+    "typescript": "^5.5.2",
+    "vitest": "2.0.5",
+    "wrangler": "^3.82.0"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.13.12",
+    "@types/nunjucks": "^3.2.6",
+    "hls-parser": "^0.13.3",
+    "hono": "^4.6.6",
+    "hono-nunjucks": "^0.0.1",
+    "html-minifier-terser": "^7.2.0",
+    "nunjucks": "^3.2.4"
+  }
+}

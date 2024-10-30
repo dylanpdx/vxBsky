@@ -1,0 +1,16 @@
+{% extends 'base' %} {% block head %}
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+
+<meta name="twitter:player:stream" content="{{ media['url'] }}" />
+<meta name="twitter:player:stream:content_type" content="video/mp4" />
+<meta name="twitter:player:width" content="{{ media['size']['width'] }}" />
+<meta name="twitter:player:height" content="{{ media['size']['height'] }}" />
+<meta property="og:url" content="{{ media['url'] }}" />
+<meta property="og:video" content="{{ media['url'] }}" />
+<meta property="og:video:secure_url" content="{{ media['url'] }}" />
+<meta property="og:video:type" content="video/mp4" />
+<meta property="og:video:width" content="{{ media['size']['width'] }}" />
+<meta property="og:video:height" content="{{ media['size']['height'] }}" />
+<meta name="twitter:card" content="player" />
+
+<meta http-equiv="refresh" content="0; url = {{ media['url'] }}" /> {% endblock %} {% block body %} Redirecting you to the post in a moment. <a href="{{ media['url'] }}">Or click here.</a> {% endblock %}

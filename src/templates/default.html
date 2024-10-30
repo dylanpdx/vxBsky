@@ -1,0 +1,14 @@
+{% extends 'base' %}
+
+{% block head %}
+    <title>{{ appname }}</title>
+    <meta content="{{ appname }}" property="og:title" />
+    <meta content="{{ message }}" property="og:description" />
+    <meta content="{{ repo }}" property="og:url" />
+    <meta content="{{ color }}"  name="theme-color" />
+    <meta http-equiv = "refresh" content = "0; url = {{ repo }}" />
+{% endblock %}
+
+{% block body %}
+    You will be redirected to this project's github page in a moment. <a href="{{ repo }}">Or click here.</a>
+{% endblock %}

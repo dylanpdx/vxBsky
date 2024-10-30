@@ -1,0 +1,7 @@
+{% extends 'base' %} {% block head %}
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="{{ media['url'] }}" />
+
+<meta http-equiv="refresh" content="0; url = {{ media['url'] }}" /> {% endblock %} {% block body %} Redirecting you to the post in a moment. <a href="{{ media['url'] }}">Or click here.</a> {% endblock %}

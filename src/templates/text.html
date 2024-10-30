@@ -1,0 +1,13 @@
+{% extends 'base' %}
+{% block head %}
+<meta property="og:image" content="{{ pfp }}" />
+
+<meta name="twitter:card" content="tweet" />
+{% include 'postCommon' %}
+<meta name="twitter:image" content="{{ tweet['user_profile_image_url'] }}" />
+<meta name="twitter:creator" content="@{{ user }}" />
+
+<meta property="og:description" content="{{ desc }}" />
+
+<link rel="alternate" href="{{ host }}/oembed.json?desc={{ urlUser }}&user=Bluesky&link={{ tweetLink }}&ttype=link&provider={{ appname|urlencode }}" type="application/json+oembed" title="{{ tweet['user_name'] }}">
+<meta http-equiv="refresh" content="1; url = {{ tweetLink }}" /> {% endblock %} {% block body %} Redirecting you to the post in a moment. <a href="{{ tweetLink }}">Or click here.</a> {% endblock %}

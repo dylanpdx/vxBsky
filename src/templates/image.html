@@ -1,0 +1,27 @@
+{% extends 'base' %}
+{% block head %}
+
+<meta name="twitter:card" content="summary_large_image" />
+
+{% include 'postCommon' %}
+
+<meta name="twitter:image" content="{{ pic[0] }}" />
+
+{% if pic[1] %}
+<meta name="twitter:image" content="{{ pic[1] }}" />
+{% endif %}
+
+{% if pic[2] %}
+<meta name="twitter:image" content="{{ pic[2] }}" />
+{% endif %}
+
+{% if pic[3] %}
+<meta name="twitter:image" content="{{ pic[3] }}" />
+{% endif %}
+
+<meta name="twitter:creator" content="@{{ tweet['user_name'] }}" />
+
+<meta property="og:description" content="{{ desc }}" />
+
+<link rel="alternate" href="{{ host }}/oembed.json?desc={{ urlUser }}&user=Bluesky&link={{ tweetLink }}&ttype=photo&provider={{ appname|urlencode }}" type="application/json+oembed" title="{{ tweet['user_name'] }}">
+<meta http-equiv="refresh" content="1; url = {{ tweetLink }}" /> {% endblock %} {% block body %} Redirecting you to the post in a moment. <a href="{{ tweetLink }}">Or click here.</a> {% endblock %}
