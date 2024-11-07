@@ -132,15 +132,15 @@ async function handleEmbedPost(profile:string,postid:string,embedIndex:number){
 		let embedPost = determineEmbedTweet(convertedPost);
 		if (!embedPost.hasMedia){
 			// render text tweet
-			return c.html(await renderTextTweetEmbed(c,embedPost,""));
+			return c.html(await renderTextTweetEmbed(c,convertedPost,""));
 		}else if (embedPost.allSameType && embedPost.media_extended[0].type == 'image' && embedIndex == -1 && embedPost.combinedMediaUrl != null){
 			// render single media tweet
-			return c.html(await renderImageTweetEmbed(c,embedPost,embedPost.combinedMediaUrl," - See original post for full quality"));
+			return c.html(await renderImageTweetEmbed(c,convertedPost,embedPost.combinedMediaUrl," - See original post for full quality"));
 		}else{
 
 			if (embedIndex == -1 && embedPost.media_extended.length > 1 && embedPost.allSameType && embedPost.media_extended[0].type == 'image' && config.imageCombineApi == null){
 				// if all the requirements for combining images are met, but the image combine api is not set, embed multiple images in one embed
-				return c.html(await renderImageTweetEmbed(c,embedPost,embedPost.mediaUrls));
+				return c.html(await renderImageTweetEmbed(c,convertedPost,embedPost.mediaUrls));
 			}
 
 			// render multi media tweet
@@ -156,7 +156,7 @@ async function handleEmbedPost(profile:string,postid:string,embedIndex:number){
 				return c.html(await renderImageTweetEmbed(c,embedPost,media.url,suffix));
 			}else if (media.type == 'video'){
 				if (config.videoConvertApi != null){
-					return c.html(await renderVideoTweetEmbed(c,embedPost,media as VideoMedia,suffix));
+					return c.html(await renderVideoTweetEmbed(c,convertedPost,media as VideoMedia,suffix));
 				}
 				else{
 					return c.html(await message(c,`Videos are not currently supported in ${config.appname}`));

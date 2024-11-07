@@ -31,6 +31,15 @@ async function getPostMedia(post:PostView):Promise<ExtendedMedia[]>{
         if(handler){
             media.push(...(await handler(post.embed as BskyEmbeds)));
         }
+    }else if (normalizedType == 'app.bsky.embed.recordWithMedia'){
+        const actualMediaObject = (post.embed as AppBskyEmbedRecordWithMedia.View).media;
+        const actualNormalizedType = (actualMediaObject.$type as string).replace("#view","");
+        if(embedHandlers[actualNormalizedType]){
+            const handler = embedHandlers[actualNormalizedType];
+            if(handler){
+                media.push(...(await handler(actualMediaObject as BskyEmbeds)));
+            }
+        }
     }
     return media;
 }
@@ -73,15 +82,11 @@ export async function convertPost(bskyPost:PostView,context:any,followQuoted:boo
         if (media.length == 0){
             media.push(...convertedQuote.media_extended);
         }
-        
     }else if (bskyPost.embed != null && bskyPost.embed.$type == 'app.bsky.embed.recordWithMedia#view' && followQuoted){
         const quotedPost = bskyPost.embed as AppBskyEmbedRecordWithMedia.View;
         const quotedPostRecord = quotedPost.record.record as ViewRecord;
-        convertedQuote = await convertPost({
-            record:{...quotedPostRecord,...quotedPostRecord.value as AppBskyFeedPost.Record},
-            ...quotedPostRecord
-        },context);
 
+        convertedQuote = await convertPost(await getPostFromUri(quotedPostRecord.uri),context);
         if (media.length == 0){ // this shouldn't happen since recordWithMedia embeds should always have media
             media.push(...convertedQuote.media_extended);
         }
