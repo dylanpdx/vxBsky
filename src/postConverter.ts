@@ -7,6 +7,7 @@ import ConvertVideo from "./embedConverters/videoConverter";
 import { ViewRecord } from "@atproto/api/dist/client/types/app/bsky/embed/record";
 import getConfig from "./config";
 import { getPostFromUri } from "./bsky-api";
+import ConvertExternal from "./embedConverters/externalConverter";
 
 type BskyEmbeds = 
 AppBskyEmbedImages.View | // image
@@ -19,6 +20,7 @@ const embedHandlers: {[name:string]:
     (embed:BskyEmbeds)=>Promise<ExtendedMedia[]>} ={
     'app.bsky.embed.images':async (embed:BskyEmbeds)=>{return ConvertImage(embed as AppBskyEmbedImages.View)},
     'app.bsky.embed.video':async (embed:BskyEmbeds)=>{return ConvertVideo(embed as AppBskyEmbedVideo.View)},
+    'app.bsky.embed.external':async (embed:BskyEmbeds)=>{return ConvertExternal(embed as AppBskyEmbedExternal.View)},
 }
 
 async function getPostMedia(post:PostView):Promise<ExtendedMedia[]>{
@@ -49,32 +51,8 @@ export async function convertPost(bskyPost:PostView,context:any,followQuoted:boo
     const postRecord = bskyPost.record as AppBskyFeedPost.Record
     const media = await getPostMedia(bskyPost);
     let convertedQuote : BskyPost | undefined = undefined;
-
-    if (bskyPost.embed != null && bskyPost.embed.$type == 'app.bsky.embed.external#view'){
-        const externalPost = bskyPost.embed as AppBskyEmbedExternal.View;
-        if (externalPost.external.uri.startsWith("https://media.tenor.com/")){
-            // tenor gif
-            let width = 500;
-            let height = 500;
-            const url = new URL(externalPost.external.uri);
-            if (url.searchParams.has('hh') && url.searchParams.has('ww')){
-                width = parseInt(url.searchParams.get('ww') as string);
-                height = parseInt(url.searchParams.get('hh') as string);
-            }
-            
-            const gif:ImageMedia={
-                url:externalPost.external.uri,
-                type:'image',
-                thumbnail_url:externalPost.external.thumb,
-                isGif:true,
-                altText:externalPost.external.title,
-                size:{width:width,height:height},
-            };
-            media.push(gif);
-        }else{
-            // TODO: handle generic external links
-        }
-    }else if (bskyPost.embed != null && bskyPost.embed.$type == 'app.bsky.embed.record#view' && followQuoted){
+    console.log(bskyPost);
+    if (bskyPost.embed != null && bskyPost.embed.$type == 'app.bsky.embed.record#view' && followQuoted){
         const quotedPost = bskyPost.embed as AppBskyEmbedRecord.View;
         const quotedPostRecord = quotedPost.record as ViewRecord;
         console.log(quotedPost);
@@ -86,9 +64,10 @@ export async function convertPost(bskyPost:PostView,context:any,followQuoted:boo
         const quotedPost = bskyPost.embed as AppBskyEmbedRecordWithMedia.View;
         const quotedPostRecord = quotedPost.record.record as ViewRecord;
 
-        convertedQuote = await convertPost(await getPostFromUri(quotedPostRecord.uri),context);
+        convertedQuote = await convertPost(await getPostFromUri(quotedPostRecord.uri),context,false);
         if (media.length == 0){ // this shouldn't happen since recordWithMedia embeds should always have media
             media.push(...convertedQuote.media_extended);
+            console.log("media was empty, but recordWithMedia embed had media");
         }
     }
 
