@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { installNunjucks } from "hono-nunjucks";
-import templates from "./precompiled.mjs";
+import templates from "../.wrangler/precompiled.mjs";
 import { getPost } from './bsky-api';
 import { convertPost } from './postConverter';
 import { BskyPost } from './interfaces/post';
@@ -9,12 +9,13 @@ import getConfig from './config';
 import { VideoMedia } from './interfaces/extendedMedia';
 import { Context } from 'hono/jsx';
 import { contextStorage, getContext } from 'hono/context-storage';
+import { DiscordComponent } from './interfaces/discordComponent';
 const { minify } = require('html-minifier-terser');
 type Variables = {t: any}
 const app = new Hono<{Variables:Variables}>()
 app.use("*",installNunjucks({templates: templates}) as any);
 app.use(contextStorage());
-
+const imgSplit = 10;
 
 async function minifyh(html:string){
 	return await minify(html,{collapseWhitespace:true,minifyCSS:true});
@@ -35,7 +36,7 @@ async function renderImageTweetEmbed(c:any,post:BskyPost,imageUrl:string|string[
 
 	const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
 
-	const rendered = t.render("image", {
+	const toRender = {
 		tweet: post,
 		pic:images,
 		host:config.url,
@@ -44,7 +45,57 @@ async function renderImageTweetEmbed(c:any,post:BskyPost,imageUrl:string|string[
 		tweetLink:post.tweetUrl,
 		appname:formatProvider(config.appname+appnameSuffix,post),
 		color:config.color,
-	});
+		component_embed:undefined as {"component":DiscordComponent}|undefined
+	}
+
+	if (images.length > 4){
+
+		const imgChunks = [];
+		for (let i = 0; i < toRender.pic.length; i += imgSplit) {
+  			imgChunks.push(toRender.pic.slice(i, i + imgSplit));
+		}
+		const galleryEmbeds:DiscordComponent[]=[];
+
+		imgChunks.forEach(chunk => {
+			galleryEmbeds.push(
+				{
+					"type":12,
+					"items":chunk.map(c=>{
+						return {"media":{"url":c}};
+					})
+				}
+			)
+		});
+
+		const component_embed = 
+		{
+			"component":{
+				"type":17,
+				"accent_color": 5793266,
+				"components":([
+					{
+						"type":10,
+						"content":`-# ${toRender.appname.replace("\n","\n-# ")}`
+					},
+					{
+						"type":10,
+						"content":`[**Bluesky**](${toRender.tweetLink})`
+					},
+					{
+						"type":10,
+						"content":`**${toRender.tweet.user_name} (${toRender.tweet.user_screen_name})**`
+					},
+					{
+						"type":10,
+						"content":`${desc}`
+					}
+				]as DiscordComponent[]).concat(galleryEmbeds)
+			}
+		}
+		toRender.component_embed=component_embed;
+	}
+
+	const rendered = t.render("image", toRender);
 
 	return await minifyh(rendered);
 }

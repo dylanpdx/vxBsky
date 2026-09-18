@@ -1,4 +1,4 @@
-import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedPost } from "@atproto/api"
+import { AppBskyEmbedExternal, AppBskyEmbedGallery, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedPost } from "@atproto/api"
 import { PostView } from "@atproto/api/dist/client/types/app/bsky/feed/defs"
 import { BskyPost } from "./interfaces/post"
 import { ExtendedMedia, ImageMedia } from "./interfaces/extendedMedia"
@@ -8,12 +8,14 @@ import { ViewRecord } from "@atproto/api/dist/client/types/app/bsky/embed/record
 import getConfig from "./config";
 import { getPostFromUri } from "./bsky-api";
 import ConvertExternal from "./embedConverters/externalConverter";
+import { DiscordComponent } from "./interfaces/discordComponent";
 
 type BskyEmbeds = 
 AppBskyEmbedImages.View | // image
 AppBskyEmbedVideo.View |  // video
 AppBskyEmbedExternal.View | // external (link)
 AppBskyEmbedRecord.View | // record (qrt)
+AppBskyEmbedGallery.View | // gallery (carousel with >4 images)
 AppBskyEmbedRecordWithMedia.View; // recordWithMedia (qrt with media)
 
 const embedHandlers: {[name:string]:
@@ -21,6 +23,7 @@ const embedHandlers: {[name:string]:
     'app.bsky.embed.images':async (embed:BskyEmbeds)=>{return ConvertImage(embed as AppBskyEmbedImages.View)},
     'app.bsky.embed.video':async (embed:BskyEmbeds)=>{return ConvertVideo(embed as AppBskyEmbedVideo.View)},
     'app.bsky.embed.external':async (embed:BskyEmbeds)=>{return ConvertExternal(embed as AppBskyEmbedExternal.View)},
+    'app.bsky.embed.gallery':async (embed:BskyEmbeds)=>{return ConvertImage(embed as AppBskyEmbedGallery.View)},
 }
 
 async function getPostMedia(post:PostView):Promise<ExtendedMedia[]>{
@@ -28,6 +31,7 @@ async function getPostMedia(post:PostView):Promise<ExtendedMedia[]>{
     if (post.embed == null) return media;
 
     const normalizedType=(post.embed.$type as string).replace("#view","");
+    console.log("n: "+normalizedType);
     if(embedHandlers[normalizedType]){
         const handler = embedHandlers[normalizedType];
         if(handler){
@@ -51,11 +55,9 @@ export async function convertPost(bskyPost:PostView,context:any,followQuoted:boo
     const postRecord = bskyPost.record as AppBskyFeedPost.Record
     const media = await getPostMedia(bskyPost);
     let convertedQuote : BskyPost | undefined = undefined;
-    console.log(bskyPost);
     if (bskyPost.embed != null && bskyPost.embed.$type == 'app.bsky.embed.record#view' && followQuoted){
         const quotedPost = bskyPost.embed as AppBskyEmbedRecord.View;
         const quotedPostRecord = quotedPost.record as ViewRecord;
-        console.log(quotedPost);
         convertedQuote = await convertPost(await getPostFromUri(quotedPostRecord.uri),context,false);
         if (media.length == 0){
             media.push(...convertedQuote.media_extended);
